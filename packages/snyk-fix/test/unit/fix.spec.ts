@@ -40,7 +40,7 @@ describe('Snyk fix', () => {
     expect(writeFileSpy).not.toHaveBeenCalled();
   });
 
-  it.only('Snyk fix returns results for supported & unsupported type', async () => {
+  it('Snyk fix returns results for supported & unsupported type', async () => {
     // Arrange
     const projectTestResult = generateEntityToFix(
       'pip',
@@ -61,7 +61,7 @@ describe('Snyk fix', () => {
 
     // Assert
     expect(res).toMatchSnapshot();
-  }, 10000);
+  }, 60000);
 
   it('Snyk fix returns results as expected', async () => {
     // Arrange
@@ -111,7 +111,7 @@ describe('Snyk fix', () => {
     expect(
       res.results.python.succeeded[1].original.scanResult.identity.targetFile,
     ).toEqual('prod.txt');
-  });
+  }, 60000);
   it('Snyk fix returns results as expected when 1 fails to fix', async () => {
     // Arrange
     const txtProdProjectTestResult = generateEntityToFix(
@@ -166,7 +166,7 @@ describe('Snyk fix', () => {
     expect(
       res.results.python.succeeded[0].original.scanResult.identity.targetFile,
     ).toEqual('prod.txt');
-  });
+  }, 60000);
 
   it('Snyk fix returns results as expected when remediation data is empty', async () => {
     // Arrange
