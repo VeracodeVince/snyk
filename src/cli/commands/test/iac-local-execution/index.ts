@@ -19,25 +19,36 @@ import {
   formatScanResults,
   cleanLocalCache,
 } from './measurable-methods';
+import { isFeatureFlagSupportedForOrg } from '../../../../lib/feature-flags';
+import { FlagError } from './assert-iac-options-flag';
+
 // this method executes the local processing engine and then formats the results to adapt with the CLI output.
 // this flow is the default GA flow for IAC scanning.
 export async function test(
   pathToScan: string,
   options: IaCTestFlags,
 ): Promise<TestReturnValue> {
-  await initLocalCache({ customRules: options.customRules });
+  // TODO: This should support the --org flag and related env variables.
+  const iacOrgSettings = await getIacOrgSettings();
+  const customRules = await customRulesPathForOrg(
+    options.customRules,
+    iacOrgSettings.meta.org,
+  );
+
+  await initLocalCache({ customRules });
 
   const filesToParse = await loadFiles(pathToScan, options);
-  let { parsedFiles, failedFiles } = await parseFiles(filesToParse, options);
-  if (options.customRules) {
-    parsedFiles = parsedFiles.map((file) => ({
+  const { parsedFiles, failedFiles } = await parseFiles(filesToParse, options);
+
+  let updatedParsedFiles = parsedFiles;
+  if (customRules) {
+    updatedParsedFiles = parsedFiles.map((file) => ({
       ...file,
       engineType: EngineType.Custom,
     }));
   }
 
-  const scannedFiles = await scanFiles(parsedFiles);
-  const iacOrgSettings = await getIacOrgSettings();
+  const scannedFiles = await scanFiles(updatedParsedFiles);
   const resultsWithCustomSeverities = await applyCustomSeverities(
     scannedFiles,
     iacOrgSettings.customPolicies,
@@ -58,6 +69,21 @@ export async function test(
       ? failedFiles.map(removeFileContent)
       : undefined,
   };
+}
+
+async function customRulesPathForOrg(
+  customRules: string | undefined,
+  org: string,
+): Promise<string | undefined> {
+  if (!customRules) return;
+
+  const isCustomRulesSupported =
+    (await isFeatureFlagSupportedForOrg('iacCustomRules', org)).ok === true;
+  if (isCustomRulesSupported) {
+    return customRules;
+  }
+
+  throw new FlagError('customRules');
 }
 
 export function removeFileContent({
