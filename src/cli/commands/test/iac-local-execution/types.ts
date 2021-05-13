@@ -92,7 +92,9 @@ export type SafeAnalyticsOutput = Omit<
 export enum EngineType {
   Kubernetes,
   Terraform,
+  Custom,
 }
+
 export interface PolicyMetadata {
   id: string;
   publicId: string;
@@ -135,6 +137,8 @@ export type IaCTestFlags = Pick<
   // This flag is internal and is used merely to route the smoke tests of the old flow.
   // it should be removed together when the GA version completely deprecates the legacy remote processing flow.
   legacy?: boolean;
+  // Allows the caller to provide the path to a WASM bundle.
+  customRules?: string;
 } & TerraformPlanFlags;
 
 // Flags specific for Terraform plan scanning

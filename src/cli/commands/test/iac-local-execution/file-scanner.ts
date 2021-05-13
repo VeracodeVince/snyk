@@ -39,12 +39,14 @@ export function clearPolicyEngineCache() {
   policyEngineCache = {
     [EngineType.Kubernetes]: null,
     [EngineType.Terraform]: null,
+    [EngineType.Custom]: null,
   };
 }
 
 let policyEngineCache: { [key in EngineType]: PolicyEngine | null } = {
   [EngineType.Kubernetes]: null,
   [EngineType.Terraform]: null,
+  [EngineType.Custom]: null,
 };
 
 async function buildPolicyEngine(
@@ -69,6 +71,7 @@ async function buildPolicyEngine(
 
     return new PolicyEngine(opaWasmInstance);
   } catch (err) {
+    console.log(err.stack);
     throw new FailedToBuildPolicyEngine();
   }
 }

@@ -30,6 +30,20 @@ const TERRAFORM_POLICY_ENGINE_DATA_PATH = path.join(
   LOCAL_POLICY_ENGINE_DIR,
   'tf_data.json',
 );
+const CUSTOM_POLICY_ENGINE_WASM_PATH = path.join(
+  LOCAL_POLICY_ENGINE_DIR,
+  'custom_policy.wasm',
+);
+const CUSTOM_POLICY_ENGINE_DATA_PATH = path.join(
+  LOCAL_POLICY_ENGINE_DIR,
+  'custom_data.json',
+);
+
+export function assertNever(value: never): never {
+  throw new Error(
+    `Unhandled discriminated union member: ${JSON.stringify(value)}`,
+  );
+}
 
 export function getLocalCachePath(engineType: EngineType) {
   switch (engineType) {
@@ -43,14 +57,25 @@ export function getLocalCachePath(engineType: EngineType) {
         `${process.cwd()}/${TERRAFORM_POLICY_ENGINE_WASM_PATH}`,
         `${process.cwd()}/${TERRAFORM_POLICY_ENGINE_DATA_PATH}`,
       ];
+    case EngineType.Custom:
+      return [
+        `${process.cwd()}/${CUSTOM_POLICY_ENGINE_WASM_PATH}`,
+        `${process.cwd()}/${CUSTOM_POLICY_ENGINE_DATA_PATH}`,
+      ];
+    default:
+      assertNever(engineType);
   }
 }
 
-export async function initLocalCache(): Promise<void> {
+export async function initLocalCache({
+  customRules,
+}: { customRules?: string } = {}): Promise<void> {
   const BUNDLE_URL = 'https://static.snyk.io/cli/wasm/bundle.tar.gz';
   try {
     createIacDir();
-    const response: ReadableStream = needle.get(BUNDLE_URL);
+    const response: ReadableStream = customRules
+      ? fs.createReadStream(customRules)
+      : needle.get(BUNDLE_URL);
     await extractBundle(response);
   } catch (e) {
     throw new FailedToInitLocalCacheError();

@@ -9,10 +9,7 @@ import {
 } from './types';
 import * as path from 'path';
 import { SEVERITY } from '../../../../lib/snyk-test/common';
-import {
-  IacProjectType,
-  projectTypeByFileType,
-} from '../../../../lib/iac/constants';
+import { IacProjectType } from '../../../../lib/iac/constants';
 import { CustomError } from '../../../../lib/errors';
 import { extractLineNumber } from './extract-line-number';
 import { getErrorStringCode } from './error-utils';
@@ -38,6 +35,7 @@ export function formatScanResults(
 const engineTypeToProjectType = {
   [EngineType.Kubernetes]: IacProjectType.K8S,
   [EngineType.Terraform]: IacProjectType.TERRAFORM,
+  [EngineType.Custom]: IacProjectType.CUSTOM,
 };
 
 function formatScanResult(
@@ -81,7 +79,7 @@ function formatScanResult(
         formattedIssues,
         severityThreshold,
       ),
-      projectType: projectTypeByFileType[scanResult.fileType],
+      projectType: engineTypeToProjectType[scanResult.engineType],
     },
     meta: {
       ...meta,

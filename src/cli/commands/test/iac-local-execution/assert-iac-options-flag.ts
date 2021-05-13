@@ -8,6 +8,7 @@ const keys: (keyof IaCTestFlags)[] = [
   'insecure',
   'detectionDepth',
   'severityThreshold',
+  'customRules',
   'json',
   'sarif',
   'json-file-output',

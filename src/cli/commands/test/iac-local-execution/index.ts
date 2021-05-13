@@ -5,6 +5,7 @@ import {
   IacFileParseFailure,
   SafeAnalyticsOutput,
   TestReturnValue,
+  EngineType,
 } from './types';
 import { addIacAnalytics } from './analytics';
 import { TestResult } from '../../../../lib/snyk-test/legacy';
@@ -24,9 +25,17 @@ export async function test(
   pathToScan: string,
   options: IaCTestFlags,
 ): Promise<TestReturnValue> {
-  await initLocalCache();
+  await initLocalCache({ customRules: options.customRules });
+
   const filesToParse = await loadFiles(pathToScan, options);
-  const { parsedFiles, failedFiles } = await parseFiles(filesToParse, options);
+  let { parsedFiles, failedFiles } = await parseFiles(filesToParse, options);
+  if (options.customRules) {
+    parsedFiles = parsedFiles.map((file) => ({
+      ...file,
+      engineType: EngineType.Custom,
+    }));
+  }
+
   const scannedFiles = await scanFiles(parsedFiles);
   const iacOrgSettings = await getIacOrgSettings();
   const resultsWithCustomSeverities = await applyCustomSeverities(

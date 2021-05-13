@@ -217,6 +217,7 @@ export function args(rawArgv: string[]): Args {
     'integration-version',
     'prune-repeated-subdependencies',
     'dry-run',
+    'custom-rules',
   ];
   for (const dashedArg of argumentsToTransform) {
     if (argv[dashedArg]) {
